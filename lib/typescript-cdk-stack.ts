@@ -2,6 +2,7 @@ import { Stack, StackProps, aws_s3 as s3, CfnOutput, Tags,
   aws_s3_deployment as s3Deploy, aws_iam as iam} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { DocumentManagementAPI } from './api';
+import { DocumentManagementWebserver } from './webserver';
 import { Networking } from './networking';
 import * as path from 'path';
 
@@ -29,10 +30,18 @@ export class TypescriptCdkStack extends Stack {
     const networkingStack = new Networking(this, 'NetworkingConstruct', {
       maxAzs: 2
     })
+
     Tags.of(networkingStack).add('Module', 'Networking');
+
     const api = new DocumentManagementAPI(this, 'DocumentManagementAPI', {
       documentBucket: bucket
     });
     Tags.of(api).add('Module', 'API');
+
+    const webserver = new DocumentManagementWebserver(this, 'DocumentManagementWebserver', {
+      vpc: networkingStack.vpc,
+      api: api.httpApi
+    })
+    Tags.of(webserver).add('Module', 'Webserver');
   }
 }

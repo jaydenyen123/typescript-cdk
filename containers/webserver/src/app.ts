@@ -22,4 +22,5 @@ app.listen(port, () => {
 
 const getDocuments = async () => {
     const {data: results} = await axios.get(`${apiBase}getDocument`);
+    return results;
 }

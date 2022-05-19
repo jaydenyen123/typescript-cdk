@@ -9,6 +9,9 @@ interface DocumentManagementAPIProps {
 }
 
 export class DocumentManagementAPI extends Construct {
+
+    public readonly httpApi: apigv2.HttpApi;
+
     constructor(scope: Construct, id: string, props: DocumentManagementAPIProps) {
         super(scope, id);
         const getDocumentsFunction = new lambda.NodejsFunction(this, 'getDocumentsFunction', {
@@ -32,8 +35,7 @@ export class DocumentManagementAPI extends Construct {
         bucketContainerPermissions.addActions('s3:ListBucket');
         getDocumentsFunction.addToRolePolicy(bucketContainerPermissions);
         
-
-        const httpApi = new apigv2.HttpApi(this, 'HttpAPI', {
+        this.httpApi = new apigv2.HttpApi(this, 'HttpAPI', {
             apiName: 'document-management-api',
             createDefaultStage: true,
             corsPreflight: {
@@ -45,7 +47,7 @@ export class DocumentManagementAPI extends Construct {
 
         const docsIntegration = new integration.HttpLambdaIntegration('documentIntegration', getDocumentsFunction);
 
-        httpApi.addRoutes({
+        this.httpApi.addRoutes({
             path: '/getDocument',
             methods: [
                 apigv2.HttpMethod.GET
@@ -54,7 +56,7 @@ export class DocumentManagementAPI extends Construct {
         })
 
         new CfnOutput(this, 'APIEndpoint', {
-            value: httpApi.url!,
+            value: this.httpApi.url!,
             exportName: 'APIEndpoint'
         })
     }
